@@ -5,10 +5,10 @@
     <div id="main-container" class="wrapper">
       <!-- The area to load pictures -->
       <div class="img-holder wrapper-inner">
-        <div class="canvas-wrapper" id="original-wrapper">
+        <div class="canvas-wrapper" id="original-wrapper"  v-bind:style="styleObject['original']">
           <canvas id="original-image" class="original-image"></canvas>
         </div>
-        <div class="canvas-wrapper compare-mode__element" id="copy-wrapper">
+        <div class="canvas-wrapper compare-mode__element" id="copy-wrapper" v-bind:style="styleObject['copy']">
           <canvas id="copy-image"
                   class="copy-image"></canvas>
         </div>
@@ -74,36 +74,10 @@
 
               </li>
               <li class="panel-item compare-mode__element">
-                <div class="move-btn-wrapper">
-                  <div class="move-btn-container">
-                    <button class="btn move-btn" data-title-translate="up" 	data-target="original"  data-id="Up"></button>
-                    <button class="btn move-btn" data-title-translate="right" data-target="original"  data-id="Right"></button>
-                    <button class="btn move-btn" data-title-translate="left" data-target="original"  data-id="Left"></button>
-                    <button class="btn move-btn" data-title-translate="bottom"	data-target="original"  data-id="Bottom"></button>
-                  </div>
-                </div>
+                <move-buttons :data-target="'original'" v-on:move="moveCanvas($event)"/>
               </li>
               <li class="panel-item compare-mode__element text-center">
-                <button class="btn icon-btn" data-title-translate="clockwise_90" data-target="original" data-id="Rotate90">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-right-90"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="counterclockwise_90" data-target="original" data-id="Rotate-90">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-left-90"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="clockwise" data-target="original"  data-id="Rotate1">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-right"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="counterclockwise" data-target="original"  data-id="Rotate-1">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-left"></use>
-                  </svg>
-                </button>
+                <rotate-buttons :data-target="'original'" v-on:move="moveCanvas($event)"/>
               </li>
             </ul>
           </li>
@@ -137,36 +111,10 @@
                 </form>
               </li>
               <li class="panel-item compare-mode__element">
-                <div class="move-btn-wrapper">
-                  <div class="move-btn-container">
-                    <button class="btn move-btn" data-title-translate="up" 	data-target="copy" data-id="Up"></button>
-                    <button class="btn move-btn" data-title-translate="right" data-target="copy" data-id="Right"></button>
-                    <button class="btn move-btn" data-title-translate="left" data-target="copy" data-id="Left"></button>
-                    <button class="btn move-btn" data-title-translate="bottom" data-target="copy" data-id="Bottom"></button>
-                  </div>
-                </div>
+                <move-buttons :data-target="'copy'" v-on:move="moveCanvas($event)"/>
               </li>
               <li class="panel-item compare-mode__element text-center">
-                <button class="btn icon-btn" data-title-translate="clockwise_90" data-target="copy" data-id="Rotate90">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-right-90"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="counterclockwise_90" data-target="copy" data-id="Rotate-90">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-left-90"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="clockwise" data-target="copy"  data-id="Rotate1">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-right"></use>
-                  </svg>
-                </button>
-                <button class="btn icon-btn" data-title-translate="counterclockwise" data-target="copy"  data-id="Rotate-1">
-                  <svg class="icon">
-                    <use xlink:href="#rotate-left"></use>
-                  </svg>
-                </button>
+                <rotate-buttons :data-target="'copy'" v-on:move="moveCanvas($event)"/>
               </li>
               <li class="panel-item">
                 <form name="scaleForm" oninput="opacityvalue.value = transparency.valueAsNumber">
@@ -192,9 +140,97 @@
 </template>
 
 <script>
+
+import MoveButtons from "@/components/MoveButtons";
+import RotateButtons from "@/components/RotateButtons";
 export default {
   name: 'Main',
+  components: {
+    RotateButtons,
+    MoveButtons
+  },
   props: {
+  },
+  data() {
+    return {
+      canvasPosition: {
+        original: {
+          top: 0,
+          left: 0,
+          mirror: false,
+          rotate: 0
+        },
+        copy: {
+          top: 0,
+          left: 0,
+          mirror: false,
+          rotate: 0
+        }
+      },
+      styleObject:{
+        original: {
+          transform: 'translateY(0) translateX(0)'
+        },
+        copy: {
+          transform: 'translateY(0) translateX(0)'
+        }
+      }
+    }
+  },
+  methods: {
+    moveCanvas($event) {
+      const {direction, target} = $event
+      const step = 2;
+      this.moveCopy(step, direction, target);
+    },
+
+    moveCopy(step, dataDirection, target) {
+      // const imgRotationState = transform3DProperty === 0 ? 1 : -1;
+      switch (dataDirection) {
+        case 'up':
+          this.canvasPosition[target].top -= step;
+          break;
+        case 'bottom':
+          this.canvasPosition[target].top += step;
+          break;
+        case 'left':
+          this.canvasPosition[target].left -= step;
+          break;
+        case 'right':
+          this.canvasPosition[target].left += step;
+          break;
+          // todo add rotation and mirroring
+          // case 'mirror':
+          //   transform3DProperty = (transform3DProperty === 180 ? 0 : 180);
+          //   wrapper.setAttribute('data-mirror', transform3DProperty);
+          //   break;
+          // case 'rotate90':
+          //   transform2DProperty = transform2DProperty + 90 * imgRotationState;
+          //   wrapper.setAttribute('data-rotate', transform2DProperty);
+          //   break;
+          // case 'rotate1':
+          //   transform2DProperty = transform2DProperty + 1 * imgRotationState;
+          //   wrapper.setAttribute('data-rotate', transform2DProperty);
+          //   break;
+          // case 'rotate-90':
+          //   transform2DProperty = transform2DProperty - 90 * imgRotationState;
+          //   wrapper.setAttribute('data-rotate', transform2DProperty);
+          //   break;
+          // case 'rotate-1':
+          //   transform2DProperty = transform2DProperty - 1 * imgRotationState;
+          //   wrapper.setAttribute('data-rotate', transform2DProperty);
+          //   break;
+      }
+      const shiftY = 'translateY(' + this.canvasPosition[target].top + 'px)';
+      const shiftX = 'translateX(' + this.canvasPosition[target].left + 'px)';
+      // todo
+      // const shift3D = 'rotateY(' + transform3DProperty + 'deg)';
+      // const shift2D = 'rotate(' + transform2DProperty + 'deg)';
+      // wrapper.style.transform = shiftX + ' ' + shiftY + ' ' + shift3D + ' ' + shift2D;
+      this.styleObject[target]  = {
+        transform: `${shiftX} ${shiftY}`
+      }
+    },
   }
 }
 </script>

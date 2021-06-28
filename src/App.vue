@@ -27,6 +27,7 @@
 </template>
 
 <script>
+
 import Plagiart from './components/Plagiart.vue'
 
 export default {

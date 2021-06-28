@@ -1,8 +1,10 @@
 <template>
-  <Header/>
-  <Main/>
-  <Footer/>
-  <Modal/>
+  <div id="contentWrapper">
+    <Header/>
+    <Main v-on:move="moveCanvas($event)"/>
+    <Footer/>
+  </div>
+  <Modal :show-modal="randomBoolean()"/>
 </template>
 
 <script>
@@ -11,10 +13,16 @@ import Main from "./Main";
 import Footer from "./Footer";
 import Modal from "./Modal";
 import json from "../assets/transliterate.json"
+
+
 export default {
   name: 'Plagiart',
   components: {Modal, Footer, Main, Header},
+
   props: {},
+  computed: {
+
+  },
   beforeCreate() {
     document.body.classList.add('scale-mode');
   },
@@ -25,7 +33,6 @@ export default {
 
     main() {
       const plagiart = this;
-      this.initMoveButtons();
       this.switchSidebar();
       this.initTranslate();
       this.canvasOrig = document.getElementById("original-image");
@@ -146,111 +153,6 @@ export default {
 
     },
 
-    initMoveButtons() {
-      const plagiart = this;
-      const buttons = [
-        {dataId: 'Up', direction: 'up'},
-        {dataId: 'Left', direction: 'left'},
-        {dataId: 'Bottom', direction: 'bottom'},
-        {dataId: 'Right', direction: 'right'},
-        {dataId: 'Mirror', direction: 'mirror'},
-        {dataId: 'Rotate90', direction: 'rotate90'},
-        {dataId: 'Rotate-90', direction: 'rotate-90'},
-        {dataId: 'Rotate1', direction: 'rotate1'},
-        {dataId: 'Rotate-1', direction: 'rotate-1'},
-      ];
-
-      buttons.forEach(item => {
-        const currentButtons = document.querySelectorAll('[data-id=' + item.dataId + ']');
-        currentButtons.forEach(function (button) {
-          button.addEventListener('click', function () {
-            plagiart.moveCanvas(item.direction, button.getAttribute('data-target'));
-          });
-        })
-      })
-    },
-
-    moveCanvas(direction, target) {
-      let wrapper = document.getElementById('original-wrapper');
-      if (target === 'copy') {
-        wrapper = document.getElementById('copy-wrapper');
-      }
-      const step = 2;
-      switch (direction) {
-        case 'up':
-          moveCopy(-step, 'data-vertical');
-          break;
-        case 'left':
-          moveCopy(-step, 'data-horizontal');
-          break;
-        case 'bottom':
-          moveCopy(step, 'data-vertical');
-          break;
-        case 'right':
-          moveCopy(step, 'data-horizontal');
-          break;
-        case 'mirror':
-          moveCopy(step, 'mirror');
-          break;
-        case 'rotate90':
-          moveCopy(step, 'rotate90');
-          break;
-        case 'rotate1':
-          moveCopy(step, 'rotate1');
-          break;
-        case 'rotate-90':
-          moveCopy(step, 'rotate-90');
-          break;
-        case 'rotate-1':
-          moveCopy(step, 'rotate-1');
-          break;
-      }
-      function moveCopy(step, dataDirection) {
-      let transformVProperty = (wrapper.getAttribute('data-vertical') === null) ? 0 : parseInt(wrapper.getAttribute('data-vertical'));
-      let transformHProperty = (wrapper.getAttribute('data-horizontal') === null) ? 0 : parseInt(wrapper.getAttribute('data-horizontal'));
-      let transform3DProperty = (wrapper.getAttribute('data-mirror') === null) ? 0 : parseInt(wrapper.getAttribute('data-mirror'));
-      let transform2DProperty = (wrapper.getAttribute('data-rotate') === null) ? 0 : parseInt(wrapper.getAttribute('data-rotate'));
-      //
-      const imgRotationState = transform3DProperty === 0 ? 1 : -1;
-      switch (dataDirection) {
-        case 'data-horizontal':
-          transformHProperty += step;
-          wrapper.setAttribute('data-horizontal', transformHProperty);
-          break;
-        case 'data-vertical':
-          transformVProperty += step;
-          wrapper.setAttribute('data-vertical', transformVProperty);
-          break;
-        case 'mirror':
-          transform3DProperty = (transform3DProperty === 180 ? 0 : 180);
-          wrapper.setAttribute('data-mirror', transform3DProperty);
-          break;
-        case 'rotate90':
-          transform2DProperty = transform2DProperty + 90 * imgRotationState;
-          wrapper.setAttribute('data-rotate', transform2DProperty);
-          break;
-        case 'rotate1':
-          transform2DProperty = transform2DProperty + 1 * imgRotationState;
-          wrapper.setAttribute('data-rotate', transform2DProperty);
-          break;
-        case 'rotate-90':
-          transform2DProperty = transform2DProperty - 90 * imgRotationState;
-          wrapper.setAttribute('data-rotate', transform2DProperty);
-          break;
-        case 'rotate-1':
-          transform2DProperty = transform2DProperty - 1 * imgRotationState;
-          wrapper.setAttribute('data-rotate', transform2DProperty);
-          break;
-      }
-
-      const shiftY = 'translateY(' + transformVProperty + 'px)';
-      const shiftX = 'translateX(' + transformHProperty + 'px)';
-      const shift3D = 'rotateY(' + transform3DProperty + 'deg)';
-      const shift2D = 'rotate(' + transform2DProperty + 'deg)';
-      wrapper.style.transform = shiftX + ' ' + shiftY + ' ' + shift3D + ' ' + shift2D;
-    }
-    },
-
     switchSidebar() {
       let switchSidebarBtn = document.getElementById('sidebar-position');
       let sidebarPosition = 'right';
@@ -338,16 +240,11 @@ export default {
 
     },
 
-    showModal(modalId) {
-      const currentModal = document.getElementById(modalId);
-      currentModal.classList.add('visible');
-      const wrapperToBlur = document.getElementById('app');
-      wrapperToBlur.classList.add('blur');
-      const reloadButton = document.getElementById('reload');
-      reloadButton.addEventListener('click', function () {
-        window.location.reload();
-      })
-    }
+    randomBoolean() {
+      // return !!parseInt(Math.random() * 2)
+      return false
+    },
+
   },
 }
 
