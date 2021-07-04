@@ -5,12 +5,11 @@
     <div id="main-container" class="wrapper">
       <!-- The area to load pictures -->
       <div class="img-holder wrapper-inner">
-        <div class="canvas-wrapper" id="original-wrapper"  v-bind:style="styleObject['original']">
-          <canvas id="original-image" class="original-image"></canvas>
+        <div class="canvas-wrapper" id="original-wrapper"  :style="transformProperty('original')">
+          <canvas id="original-image" class="original-image" :style="scaleOpacityProperty('original')"></canvas>
         </div>
-        <div class="canvas-wrapper compare-mode__element" id="copy-wrapper" v-bind:style="styleObject['copy']">
-          <canvas id="copy-image"
-                  class="copy-image"></canvas>
+        <div class="canvas-wrapper compare-mode__element" id="copy-wrapper" :style="transformProperty('copy')">
+          <canvas id="copy-image" class="copy-image" :style="scaleOpacityProperty('copy')"></canvas>
         </div>
       </div>
       <!-- Right-side area with interface -->
@@ -62,15 +61,16 @@
                 <p><span data-translate="by_vertical"></span> <b id="remappedY"></b></p>
               </li>
               <li class="panel-item compare-mode__element">
-                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">
-                  <label for="scaleOrig" data-translate="scale"></label>
-                  <output name="rangevalue" for="range">100</output>%
-                  <input type="range" id="scaleOrig" name="scale" data-id="scale"
-                         class="input"
-                         value="100"
-                         min="0" max="200" step="1">
+                <range-control :data-target="'original'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
+<!--                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">-->
+<!--                  <label for="scaleOrig" data-translate="scale"></label>-->
+<!--                  <output name="rangevalue" for="range">100</output>%-->
+<!--                  <input type="range" id="scaleOrig" name="scale" data-id="scale"-->
+<!--                         class="input"-->
+<!--                         value="100"-->
+<!--                         min="0" max="200" step="1">-->
 
-                </form>
+<!--                </form>-->
 
               </li>
               <li class="panel-item compare-mode__element">
@@ -100,15 +100,16 @@
                 </label>
               </li>
               <li class="panel-item compare-mode__element">
-                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">
-                  <label for="scaleOrig" data-translate="scale"></label>
-                  <output name="rangevalue" for="range">100</output>%
-                  <input type="range" id="scaleCopy" name="scale" data-id="scale"
-                         class="input"
-                         value="100"
-                         min="0" max="200" step="1">
+                <range-control :data-target="'copy'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
+<!--                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">-->
+<!--                  <label for="scaleOrig" data-translate="scale"></label>-->
+<!--                  <output name="rangevalue" for="range">100</output>%-->
+<!--                  <input type="range" id="scaleCopy" name="scale" data-id="scale"-->
+<!--                         class="input"-->
+<!--                         value="100"-->
+<!--                         min="0" max="200" step="1">-->
 
-                </form>
+<!--                </form>-->
               </li>
               <li class="panel-item compare-mode__element">
                 <move-buttons :data-target="'copy'" v-on:move="moveCanvas($event)"/>
@@ -117,18 +118,19 @@
                 <rotate-buttons :data-target="'copy'" v-on:move="moveCanvas($event)"/>
               </li>
               <li class="panel-item">
-                <form name="scaleForm" oninput="opacityvalue.value = transparency.valueAsNumber">
-                  <label for="transparency" data-translate="transparency"></label>
-                  <output name="opacityvalue" for="transparency">50</output>%
-                  <input type="range" id="transparency" name="transparency"
-                         class="input"
+                <range-control :data-target="'copy'" :max-range="100" :range-category="'transparency'" :initial-value="50" v-on:range="changeOpacity($event)"/>
+<!--                <form name="scaleForm" oninput="opacityvalue.value = transparency.valueAsNumber">-->
+<!--                  <label for="transparency" data-translate="transparency"></label>-->
+<!--                  <output name="opacityvalue" for="transparency">50</output>%-->
+<!--                  <input type="range" id="transparency" name="transparency"-->
+<!--                         class="input"-->
 
-                         value="50"
-                         min="0" max="100" step="5">
-                </form>
+<!--                         value="50"-->
+<!--                         min="0" max="100" step="5">-->
+<!--                </form>-->
               </li>
               <li class="panel-item compare-mode__element">
-                <button class="btn full-width-btn" title="Mirror" data-target="copy" data-id="Mirror" data-translate="mirror"></button>
+                <button class="btn full-width-btn" title="Mirror" data-translate="mirror" @click="moveCanvas({direction: 'mirror', target: 'copy'})"></button>
               </li>
             </ul>
           </li>
@@ -143,11 +145,13 @@
 
 import MoveButtons from "@/components/MoveButtons";
 import RotateButtons from "@/components/RotateButtons";
+import RangeControl from "@/components/RangeControl";
 export default {
   name: 'Main',
   components: {
     RotateButtons,
-    MoveButtons
+    MoveButtons,
+    RangeControl,
   },
   props: {
   },
@@ -157,22 +161,18 @@ export default {
         original: {
           top: 0,
           left: 0,
-          mirror: false,
-          rotate: 0
+          mirror: 0,
+          rotate: 0,
+          transparency: 0,
+          scale: 100
         },
         copy: {
           top: 0,
           left: 0,
-          mirror: false,
-          rotate: 0
-        }
-      },
-      styleObject:{
-        original: {
-          transform: 'translateY(0) translateX(0)'
-        },
-        copy: {
-          transform: 'translateY(0) translateX(0)'
+          mirror: 0,
+          rotate: 0,
+          transparency: 50,
+          scale: 100
         }
       }
     }
@@ -185,7 +185,6 @@ export default {
     },
 
     moveCopy(step, dataDirection, target) {
-      // const imgRotationState = transform3DProperty === 0 ? 1 : -1;
       switch (dataDirection) {
         case 'up':
           this.canvasPosition[target].top -= step;
@@ -199,37 +198,46 @@ export default {
         case 'right':
           this.canvasPosition[target].left += step;
           break;
-          // todo add rotation and mirroring
-          // case 'mirror':
-          //   transform3DProperty = (transform3DProperty === 180 ? 0 : 180);
-          //   wrapper.setAttribute('data-mirror', transform3DProperty);
-          //   break;
-          // case 'rotate90':
-          //   transform2DProperty = transform2DProperty + 90 * imgRotationState;
-          //   wrapper.setAttribute('data-rotate', transform2DProperty);
-          //   break;
-          // case 'rotate1':
-          //   transform2DProperty = transform2DProperty + 1 * imgRotationState;
-          //   wrapper.setAttribute('data-rotate', transform2DProperty);
-          //   break;
-          // case 'rotate-90':
-          //   transform2DProperty = transform2DProperty - 90 * imgRotationState;
-          //   wrapper.setAttribute('data-rotate', transform2DProperty);
-          //   break;
-          // case 'rotate-1':
-          //   transform2DProperty = transform2DProperty - 1 * imgRotationState;
-          //   wrapper.setAttribute('data-rotate', transform2DProperty);
-          //   break;
+        case 'mirror':
+          this.canvasPosition[target].mirror = this.canvasPosition[target].mirror === 0 ? 180 : 0;
+          break;
+        case 'rotate90':
+          this.canvasPosition[target].rotate += 90;
+          break;
+        case 'rotate-90':
+          this.canvasPosition[target].rotate -= 90;
+          break;
+        case 'rotate1':
+          this.canvasPosition[target].rotate++;
+          break;
+        case 'rotate-1':
+          this.canvasPosition[target].rotate--;
+          break;
       }
+    },
+
+    transformProperty(target) {
       const shiftY = 'translateY(' + this.canvasPosition[target].top + 'px)';
       const shiftX = 'translateX(' + this.canvasPosition[target].left + 'px)';
-      // todo
-      // const shift3D = 'rotateY(' + transform3DProperty + 'deg)';
-      // const shift2D = 'rotate(' + transform2DProperty + 'deg)';
-      // wrapper.style.transform = shiftX + ' ' + shiftY + ' ' + shift3D + ' ' + shift2D;
-      this.styleObject[target]  = {
-        transform: `${shiftX} ${shiftY}`
-      }
+      const mirror = 'rotateY(' + this.canvasPosition[target].mirror + 'deg)';
+      const rotate = 'rotate(' + this.canvasPosition[target].rotate + 'deg)';
+      return `transform: ${shiftX} ${shiftY} ${mirror} ${rotate}`;
+    },
+
+    scaleOpacityProperty(target) {
+      const scale = `scale(${this.canvasPosition[target].scale/100})`;
+      const opacity = `opacity: ${1 - this.canvasPosition[target].transparency/100}`;
+      return `transform: ${scale}; ${opacity}`;
+    },
+
+    changeOpacity($event) {
+      const {target, value} = $event;
+      this.canvasPosition[target].transparency = value;
+    },
+
+    changeScale($event) {
+      const {target, value} = $event;
+      this.canvasPosition[target].scale = value;
     },
   }
 }

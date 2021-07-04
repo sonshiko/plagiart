@@ -69,9 +69,9 @@ export default {
       this.uploadPicture('original', imageOrig);
       this.uploadPicture('clone', imageCopy);
 
-      this.changeOpacity(this.canvasCopy);
-      this.changeScale(this.canvasCopy, document.getElementById('scaleCopy'));
-      this.changeScale(this.canvasOrig, document.getElementById('scaleOrig'));
+      // this.changeOpacity(this.canvasCopy);
+      // this.changeScale(this.canvasCopy, document.getElementById('scaleCopy'));
+      // this.changeScale(this.canvasOrig, document.getElementById('scaleOrig'));
 
       this.inputHeight.addEventListener('keyup', function () {
         plagiart.inputWidth.value = this.value * plagiart.origImgWidth / plagiart.origImgHeight;
@@ -120,28 +120,6 @@ export default {
           }
         })
       }
-    },
-
-
-    changeOpacity(canvasCopy) {
-      const opacityInput = document.getElementById('transparency');
-      opacityInput.value = 50;
-      canvasCopy.style.opacity = 1 - opacityInput.value / 100;
-      opacityInput.addEventListener('input', function (e) {
-        const newOpacity = e.target.value;
-        canvasCopy.style.opacity = 1 - newOpacity / 100;
-      });
-
-    },
-
-    changeScale(canvas, scaleInput) {
-      scaleInput.value = 100;
-      canvas.style.transform = `scale(${scaleInput.value / 100})`;
-      scaleInput.addEventListener('input', function (e) {
-        const newScale = e.target.value;
-        canvas.style.transform = `scale(${newScale / 100})`;
-      });
-
     },
 
     resizeCanvasToImg(canvas, image) {
