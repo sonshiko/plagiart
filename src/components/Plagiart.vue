@@ -66,8 +66,8 @@ export default {
         ctxCopy.drawImage(imageCopy, 0, 0);
       };
 
-      this.uploadPicture('original', imageOrig);
-      this.uploadPicture('clone', imageCopy);
+      // this.uploadPicture('original', imageOrig);
+      // this.uploadPicture('clone', imageCopy);
 
       // this.changeOpacity(this.canvasCopy);
       // this.changeScale(this.canvasCopy, document.getElementById('scaleCopy'));

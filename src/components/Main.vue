@@ -24,17 +24,18 @@
           <li>
             <ul class="panel-list-item">
               <li class="panel-item">
-                <figure>
-                  <img id="originalPicture" class="buttons" src="@/assets/button-orig.jpg" alt="Press this button to load original picture">
-                  <figcaption data-translate="original_picture"></figcaption>
-                </figure>
-                <label for="original" class="input-label btn full-width-btn">
-                  <span data-translate="upload_image"></span>
-                  <input type="file"
-                         id="original" name="original"
-                         placeholder="Original file"
-                         accept="image/png, image/jpeg">
-                </label>
+                <file-upload :data-target="'original'" v-on:file="onImageUpload($event)"></file-upload>
+<!--                <figure>-->
+<!--                  <img id="originalPicture" class="buttons" src="@/assets/button-orig.jpg" alt="Press this button to load original picture">-->
+<!--                  <figcaption data-translate="original_picture"></figcaption>-->
+<!--                </figure>-->
+<!--                <label for="original" class="input-label btn full-width-btn">-->
+<!--                  <span data-translate="upload_image"></span>-->
+<!--                  <input type="file"-->
+<!--                         id="original" name="original"-->
+<!--                         placeholder="Original file"-->
+<!--                         accept="image/png, image/jpeg">-->
+<!--                </label>-->
               </li>
               <li class="panel-item scale-mode__element">
                 <label for="canvasWidth">
@@ -62,16 +63,6 @@
               </li>
               <li class="panel-item compare-mode__element">
                 <range-control :data-target="'original'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
-<!--                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">-->
-<!--                  <label for="scaleOrig" data-translate="scale"></label>-->
-<!--                  <output name="rangevalue" for="range">100</output>%-->
-<!--                  <input type="range" id="scaleOrig" name="scale" data-id="scale"-->
-<!--                         class="input"-->
-<!--                         value="100"-->
-<!--                         min="0" max="200" step="1">-->
-
-<!--                </form>-->
-
               </li>
               <li class="panel-item compare-mode__element">
                 <move-buttons :data-target="'original'" v-on:move="moveCanvas($event)"/>
@@ -86,18 +77,19 @@
             <ul class="panel-list-item ">
 
               <li class="panel-item">
-                <figure>
-                  <!-- <button id="artistsPicture" class="buttons" type="button">Load the your own picture</button> -->
-                  <img id="artistsPicture" class="buttons" src="@/assets/button-custom.jpg" alt="Press this button to load your picture">
-                  <figcaption data-translate="your_picture"></figcaption>
-                </figure>
-                <label for="clone" class="input-label btn full-width-btn">
-                  <span data-translate="upload_image"></span>
-                  <input type="file"
-                         id="clone" name="clone"
-                         placeholder="Your file"
-                         accept="image/png, image/jpeg">
-                </label>
+                <file-upload :data-target="'copy'" v-on:file="onImageUpload($event)"></file-upload>
+<!--                <figure>-->
+<!--                  &lt;!&ndash; <button id="artistsPicture" class="buttons" type="button">Load the your own picture</button> &ndash;&gt;-->
+<!--                  <img id="artistsPicture" class="buttons" src="@/assets/button-custom.jpg" alt="Press this button to load your picture">-->
+<!--                  <figcaption data-translate="your_picture"></figcaption>-->
+<!--                </figure>-->
+<!--                <label for="clone" class="input-label btn full-width-btn">-->
+<!--                  <span data-translate="upload_image"></span>-->
+<!--                  <input type="file"-->
+<!--                         id="clone" name="clone"-->
+<!--                         placeholder="Your file"-->
+<!--                         accept="image/png, image/jpeg">-->
+<!--                </label>-->
               </li>
               <li class="panel-item compare-mode__element">
                 <range-control :data-target="'copy'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
@@ -146,12 +138,14 @@
 import MoveButtons from "@/components/MoveButtons";
 import RotateButtons from "@/components/RotateButtons";
 import RangeControl from "@/components/RangeControl";
+import FileUpload from "@/components/FileUpload";
 export default {
   name: 'Main',
   components: {
     RotateButtons,
     MoveButtons,
     RangeControl,
+    FileUpload,
   },
   props: {
   },
@@ -238,6 +232,45 @@ export default {
     changeScale($event) {
       const {target, value} = $event;
       this.canvasPosition[target].scale = value;
+    },
+
+    onImageUpload($event) {
+      console.log($event);
+      const {target, value} = $event;
+      this.canvasOrig = document.getElementById("original-image");
+      this.canvasCopy = document.getElementById("copy-image");
+      // this.canvasHeight = this.canvasOrig.parentElement.clientHeight;
+      // this.canvasWidth = this.canvasOrig.parentElement.clientWidth;
+      // this.canvasOrig.width = this.canvasWidth;
+      // this.canvasOrig.height = this.canvasHeight;
+      // this.canvasCopy.width = this.canvasWidth;
+      // this.canvasCopy.height = this.canvasHeight;
+
+      this.inputHeight = document.getElementById('canvasHeight');
+      this.inputWidth = document.getElementById('canvasWidth');
+      let ctxOrig = this.canvasOrig.getContext("2d");
+      // let ctxCopy = this.canvasCopy.getContext("2d");
+      let image = new Image();
+      image.src = value;
+      if (target === 'original') {
+        this.origImgHeight = image.height;
+        this.origImgWidth = image.width;
+        this.inputHeight.removeAttribute('disabled');
+        this.inputHeight.value = 0;
+        this.inputWidth.removeAttribute('disabled');
+        this.inputWidth.value = 0;
+      }
+      this.resizeCanvasToImg(this.canvasOrig, image);
+      ctxOrig.drawImage(image, 0, 0);
+    },
+
+    resizeCanvasToImg(canvas, image) {
+      const ctx = canvas.getContext("2d");
+      ctx.fillStyle = 'white';
+      ctx.fillRect(0, 0, canvas.height, canvas.width);
+      canvas.width = image.width;
+      canvas.height = image.height;
+
     },
   }
 }
