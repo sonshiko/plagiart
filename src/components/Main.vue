@@ -129,6 +129,7 @@
         </ul>
       </div>
     </div>
+    <img src="" alt="" style="display: none;" ref="newImg" @load="createAndDrawImage">
     <!-- End of main -->
   </main>
 </template>
@@ -168,7 +169,8 @@ export default {
           transparency: 50,
           scale: 100
         }
-      }
+      },
+      mewImg: null
     }
   },
   methods: {
@@ -235,10 +237,9 @@ export default {
     },
 
     onImageUpload($event) {
-      console.log($event);
       const {target, value} = $event;
-      this.canvasOrig = document.getElementById("original-image");
-      this.canvasCopy = document.getElementById("copy-image");
+      // this.canvasOrig = document.getElementById("original-image");
+      // this.canvasCopy = document.getElementById("copy-image");
       // this.canvasHeight = this.canvasOrig.parentElement.clientHeight;
       // this.canvasWidth = this.canvasOrig.parentElement.clientWidth;
       // this.canvasOrig.width = this.canvasWidth;
@@ -248,28 +249,26 @@ export default {
 
       this.inputHeight = document.getElementById('canvasHeight');
       this.inputWidth = document.getElementById('canvasWidth');
-      let ctxOrig = this.canvasOrig.getContext("2d");
-      // let ctxCopy = this.canvasCopy.getContext("2d");
-      let image = new Image();
-      image.src = value;
-      if (target === 'original') {
-        this.origImgHeight = image.height;
-        this.origImgWidth = image.width;
-        this.inputHeight.removeAttribute('disabled');
-        this.inputHeight.value = 0;
-        this.inputWidth.removeAttribute('disabled');
-        this.inputWidth.value = 0;
-      }
-      this.resizeCanvasToImg(this.canvasOrig, image);
-      ctxOrig.drawImage(image, 0, 0);
+
+      this.$refs.newImg.src = value;
+      this.$refs.newImg.id = target;
     },
 
-    resizeCanvasToImg(canvas, image) {
+    createAndDrawImage() {
+      const newImg = this.$refs.newImg;
+      const target = newImg.id;
+      const currentCanvas = document.getElementById(target +"-image");
+      this.resizeCanvasToImg(currentCanvas);
+      let ctx = currentCanvas.getContext("2d");
+      ctx.drawImage(this.$refs.newImg, 0, 0);
+    },
+    
+    resizeCanvasToImg(canvas) {
       const ctx = canvas.getContext("2d");
       ctx.fillStyle = 'white';
       ctx.fillRect(0, 0, canvas.height, canvas.width);
-      canvas.width = image.width;
-      canvas.height = image.height;
+      canvas.width = this.$refs.newImg.width;
+      canvas.height = this.$refs.newImg.height;
 
     },
   }
