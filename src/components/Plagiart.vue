@@ -73,37 +73,37 @@ export default {
       // this.changeScale(this.canvasCopy, document.getElementById('scaleCopy'));
       // this.changeScale(this.canvasOrig, document.getElementById('scaleOrig'));
 
-      this.inputHeight.addEventListener('keyup', function () {
-        plagiart.inputWidth.value = this.value * plagiart.origImgWidth / plagiart.origImgHeight;
-      })
+      // this.inputHeight.addEventListener('keyup', function () {
+      //   plagiart.inputWidth.value = this.value * plagiart.origImgWidth / plagiart.origImgHeight;
+      // })
+      //
+      // this.inputWidth.addEventListener('keyup', function () {
+      //   plagiart.inputHeight.value = this.value * plagiart.origImgHeight / plagiart.origImgWidth;
+      // })
 
-      this.inputWidth.addEventListener('keyup', function () {
-        plagiart.inputHeight.value = this.value * plagiart.origImgHeight / plagiart.origImgWidth;
-      })
-
-      this.canvasOrig.addEventListener('mousemove', function (event) {
-        const canvas = event.target;
-        const rect = canvas.getBoundingClientRect();
-        const coords = {
-          x: event.clientX - rect.x,
-          y: event.clientY - rect.y,
-        };
-        const oldCanvas = {
-          width: rect.width,
-          heigth: rect.height
-        };
-        const newCanvas = {
-          width: plagiart.inputWidth.value === 0 ? rect.width : plagiart.inputWidth.value,
-          height: plagiart.inputHeight.value === 0 ? rect.height : plagiart.inputHeight.value
-        };
-        const newCoords = {
-          x: Math.round(newCanvas.width * coords.x / oldCanvas.width),
-          y: Math.round(newCanvas.height * coords.y / oldCanvas.heigth)
-        };
-
-        document.getElementById('remappedX').innerText = newCoords.x;
-        document.getElementById('remappedY').innerText = newCoords.y;
-      })
+      // this.canvasOrig.addEventListener('mousemove', function (event) {
+      //   const canvas = event.target;
+      //   const rect = canvas.getBoundingClientRect();
+      //   const coords = {
+      //     x: event.clientX - rect.x,
+      //     y: event.clientY - rect.y,
+      //   };
+      //   const oldCanvas = {
+      //     width: rect.width,
+      //     heigth: rect.height
+      //   };
+      //   const newCanvas = {
+      //     width: plagiart.inputWidth.value === 0 ? rect.width : plagiart.inputWidth.value,
+      //     height: plagiart.inputHeight.value === 0 ? rect.height : plagiart.inputHeight.value
+      //   };
+      //   const newCoords = {
+      //     x: Math.round(newCanvas.width * coords.x / oldCanvas.width),
+      //     y: Math.round(newCanvas.height * coords.y / oldCanvas.heigth)
+      //   };
+      //
+      //   document.getElementById('remappedX').innerText = newCoords.x;
+      //   document.getElementById('remappedY').innerText = newCoords.y;
+      // })
       this.mode = 'scale';
 
       this.modeInputs = document.getElementsByClassName('mode');

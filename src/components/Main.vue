@@ -1,12 +1,17 @@
 <template>
   <main>
     <!-- Main -->
-    <!-- -->
     <div id="main-container" class="wrapper">
       <!-- The area to load pictures -->
       <div class="img-holder wrapper-inner">
         <div class="canvas-wrapper" id="original-wrapper"  :style="transformProperty('original')">
-          <canvas id="original-image" class="original-image" :style="scaleOpacityProperty('original')"></canvas>
+          <canvas id="original-image"
+                  class="original-image"
+                  :style="scaleOpacityProperty('original')"
+                  ref="originalCanvas"
+                  v-on:mousemove="showMouseCoords($event)"
+                  v-on:mouseleave="clearMouseCoords()"
+          ></canvas>
         </div>
         <div class="canvas-wrapper compare-mode__element" id="copy-wrapper" :style="transformProperty('copy')">
           <canvas id="copy-image" class="copy-image" :style="scaleOpacityProperty('copy')"></canvas>
@@ -25,17 +30,6 @@
             <ul class="panel-list-item">
               <li class="panel-item">
                 <file-upload :data-target="'original'" v-on:file="onImageUpload($event)"></file-upload>
-<!--                <figure>-->
-<!--                  <img id="originalPicture" class="buttons" src="@/assets/button-orig.jpg" alt="Press this button to load original picture">-->
-<!--                  <figcaption data-translate="original_picture"></figcaption>-->
-<!--                </figure>-->
-<!--                <label for="original" class="input-label btn full-width-btn">-->
-<!--                  <span data-translate="upload_image"></span>-->
-<!--                  <input type="file"-->
-<!--                         id="original" name="original"-->
-<!--                         placeholder="Original file"-->
-<!--                         accept="image/png, image/jpeg">-->
-<!--                </label>-->
               </li>
               <li class="panel-item scale-mode__element">
                 <label for="canvasWidth">
@@ -43,7 +37,9 @@
                   <input type="number"
                          id="canvasWidth"
                          data-input="height"
-                         class="sizeInput input" value="0"
+                         class="sizeInput input"
+                         v-model="newPictureSize.width"
+                         @change="calcNewImageSize($event, 'width')"
                          disabled>
                 </label>
                 <label for="canvasHeight">
@@ -52,14 +48,15 @@
                          id="canvasHeight"
                          data-input="width"
                          class="sizeInput input"
-                         value="0"
+                         v-model="newPictureSize.height"
+                         @change="calcNewImageSize($event, 'height')"
                          disabled>
                 </label>
               </li>
               <li class="panel-item scale-mode__element">
                 <b><p data-translate="point_coords"></p></b>
-                <p><span data-translate="by_horizontal"></span> <b id="remappedX"></b></p>
-                <p><span data-translate="by_vertical"></span> <b id="remappedY"></b></p>
+                <p><span data-translate="by_horizontal"></span> <b id="remappedX">{{mousePosition.offsetX}}</b></p>
+                <p><span data-translate="by_vertical"></span> <b id="remappedY">{{mousePosition.offsetY}}</b></p>
               </li>
               <li class="panel-item compare-mode__element">
                 <range-control :data-target="'original'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
@@ -78,30 +75,9 @@
 
               <li class="panel-item">
                 <file-upload :data-target="'copy'" v-on:file="onImageUpload($event)"></file-upload>
-<!--                <figure>-->
-<!--                  &lt;!&ndash; <button id="artistsPicture" class="buttons" type="button">Load the your own picture</button> &ndash;&gt;-->
-<!--                  <img id="artistsPicture" class="buttons" src="@/assets/button-custom.jpg" alt="Press this button to load your picture">-->
-<!--                  <figcaption data-translate="your_picture"></figcaption>-->
-<!--                </figure>-->
-<!--                <label for="clone" class="input-label btn full-width-btn">-->
-<!--                  <span data-translate="upload_image"></span>-->
-<!--                  <input type="file"-->
-<!--                         id="clone" name="clone"-->
-<!--                         placeholder="Your file"-->
-<!--                         accept="image/png, image/jpeg">-->
-<!--                </label>-->
               </li>
               <li class="panel-item compare-mode__element">
                 <range-control :data-target="'copy'" :max-range="200" range-category="scale" :initial-value="100" v-on:range="changeScale($event)"/>
-<!--                <form name="scaleForm" oninput="rangevalue.value = scale.valueAsNumber">-->
-<!--                  <label for="scaleOrig" data-translate="scale"></label>-->
-<!--                  <output name="rangevalue" for="range">100</output>%-->
-<!--                  <input type="range" id="scaleCopy" name="scale" data-id="scale"-->
-<!--                         class="input"-->
-<!--                         value="100"-->
-<!--                         min="0" max="200" step="1">-->
-
-<!--                </form>-->
               </li>
               <li class="panel-item compare-mode__element">
                 <move-buttons :data-target="'copy'" v-on:move="moveCanvas($event)"/>
@@ -111,15 +87,6 @@
               </li>
               <li class="panel-item">
                 <range-control :data-target="'copy'" :max-range="100" :range-category="'transparency'" :initial-value="50" v-on:range="changeOpacity($event)"/>
-<!--                <form name="scaleForm" oninput="opacityvalue.value = transparency.valueAsNumber">-->
-<!--                  <label for="transparency" data-translate="transparency"></label>-->
-<!--                  <output name="opacityvalue" for="transparency">50</output>%-->
-<!--                  <input type="range" id="transparency" name="transparency"-->
-<!--                         class="input"-->
-
-<!--                         value="50"-->
-<!--                         min="0" max="100" step="5">-->
-<!--                </form>-->
               </li>
               <li class="panel-item compare-mode__element">
                 <button class="btn full-width-btn" title="Mirror" data-translate="mirror" @click="moveCanvas({direction: 'mirror', target: 'copy'})"></button>
@@ -170,7 +137,18 @@ export default {
           scale: 100
         }
       },
-      mewImg: null
+      mousePosition: {
+        offsetX: null,
+        offsetY: null
+      },
+      originalPictureSize: {
+        height: 0,
+        width: 0
+      },
+      newPictureSize: {
+        height: 0,
+        width: 0
+      }
     }
   },
   methods: {
@@ -238,18 +216,10 @@ export default {
 
     onImageUpload($event) {
       const {target, value} = $event;
-      // this.canvasOrig = document.getElementById("original-image");
-      // this.canvasCopy = document.getElementById("copy-image");
-      // this.canvasHeight = this.canvasOrig.parentElement.clientHeight;
-      // this.canvasWidth = this.canvasOrig.parentElement.clientWidth;
-      // this.canvasOrig.width = this.canvasWidth;
-      // this.canvasOrig.height = this.canvasHeight;
-      // this.canvasCopy.width = this.canvasWidth;
-      // this.canvasCopy.height = this.canvasHeight;
-
       this.inputHeight = document.getElementById('canvasHeight');
       this.inputWidth = document.getElementById('canvasWidth');
-
+      this.inputHeight.removeAttribute('disabled');
+      this.inputWidth.removeAttribute('disabled');
       this.$refs.newImg.src = value;
       this.$refs.newImg.id = target;
     },
@@ -269,8 +239,31 @@ export default {
       ctx.fillRect(0, 0, canvas.height, canvas.width);
       canvas.width = this.$refs.newImg.width;
       canvas.height = this.$refs.newImg.height;
-
+      this.originalPictureSize.height = canvas.height;
+      this.originalPictureSize.width = canvas.width;
     },
+
+    showMouseCoords($event) {
+      if (!this.originalPictureSize.height) return;
+      const {offsetX, offsetY} = $event;
+      const coefficient = this.newPictureSize.height / this.originalPictureSize.height;
+      this.mousePosition.offsetX = parseInt(offsetX * coefficient);
+      this.mousePosition.offsetY = parseInt(offsetY * coefficient);
+    },
+
+    clearMouseCoords() {
+      this.mousePosition.offsetX = null;
+      this.mousePosition.offsetY = null;
+    },
+
+    calcNewImageSize($event, dimension) {
+      const newDimension = parseInt($event.target.value);
+      if (dimension === 'height') {
+        this.newPictureSize.width = parseInt(newDimension * this.originalPictureSize.width / this.originalPictureSize.height);
+      } else {
+        this.newPictureSize.height = parseInt(newDimension * this.originalPictureSize.height / this.originalPictureSize.width);
+      }
+    }
   }
 }
 </script>

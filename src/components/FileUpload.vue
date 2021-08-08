@@ -1,7 +1,11 @@
 <template>
-  <figure>
+  <figure v-if="dataTarget === 'original'">
     <img class="buttons" src="@/assets/button-orig.jpg" alt="Press this button to load original picture">
-    <figcaption data-translate="original_picture"></figcaption>
+    <figcaption data-translate="original_picture" ></figcaption>
+  </figure>
+  <figure v-if="dataTarget === 'copy'">
+    <img class="buttons" src="@/assets/button-custom.jpg" alt="Press this button to load your picture">
+    <figcaption data-translate="your_picture" ></figcaption>
   </figure>
   <label :for="dataTarget" class="input-label btn full-width-btn">
     <span data-translate="upload_image"></span>
